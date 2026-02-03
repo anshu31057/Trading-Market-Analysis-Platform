@@ -429,6 +429,54 @@ input {
   font-size: 0.9rem;
 }
 
+.strategy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.strategy-grid label {
+  display: grid;
+  gap: 8px;
+  font-size: 0.9rem;
+  margin-top: 10px;
+}
+
+.strategy-grid input,
+.strategy-grid select {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.indicator-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.strategy-stats {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.strategy-impact {
+  background: #eff6ff;
+  padding: 12px;
+  border-radius: 12px;
+}
+
 .trend-footer {
   display: flex;
   justify-content: space-between;
