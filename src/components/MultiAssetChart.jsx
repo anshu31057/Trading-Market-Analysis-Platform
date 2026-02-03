@@ -142,6 +142,11 @@ const updateSeries = (previous) => {
   return next;
 };
 
+const getAssetOffset = (assetIndex) => {
+  const band = 40;
+  return assetIndex * (band / assetConfig.length) - band / 3;
+};
+
 const CandleLayer = ({ points, yAxisMap, visibleAssets }) => {
   const yScale = Object.values(yAxisMap || {})[0]?.scale;
   if (!yScale) return null;
@@ -152,8 +157,7 @@ const CandleLayer = ({ points, yAxisMap, visibleAssets }) => {
         assetConfig.map((asset, assetIndex) => {
           if (!visibleAssets[asset.key]) return null;
           const candle = entry[`${asset.key}Candle`];
-          const band = 40;
-          const offset = assetIndex * (band / assetConfig.length) - band / 3;
+          const offset = getAssetOffset(assetIndex);
           const cx = entry.__x + offset;
           const open = yScale(candle.open);
           const close = yScale(candle.close);
@@ -191,23 +195,33 @@ const PatternLayer = ({ markers, xAxisMap, yAxisMap }) => {
   const xScale = Object.values(xAxisMap || {})[0]?.scale;
   const yScale = Object.values(yAxisMap || {})[0]?.scale;
   if (!xScale || !yScale) return null;
+  const yDomain = typeof yScale.domain === "function" ? yScale.domain() : null;
+  const [yMin, yMax] = Array.isArray(yDomain) ? yDomain : [];
 
   return (
     <g>
-      {markers.map((marker) => (
-        <g key={`${marker.time}-${marker.assetKey}-${marker.pattern.key}`}>
-          <circle
-            cx={xScale(marker.time) + marker.offset}
-            cy={yScale(marker.price)}
-            r={6}
-            fill={marker.pattern.color}
-          >
-            <title>
-              {marker.pattern.label}: {marker.pattern.description}
-            </title>
-          </circle>
-        </g>
-      ))}
+      {markers.map((marker) => {
+        const clampedPrice =
+          typeof yMin === "number" && typeof yMax === "number"
+            ? Math.min(Math.max(marker.price, yMin), yMax)
+            : marker.price;
+        return (
+          <g key={`${marker.time}-${marker.assetKey}-${marker.pattern.key}`}>
+            <circle
+              cx={xScale(marker.time) + marker.offset}
+              cy={yScale(clampedPrice)}
+              r={6}
+              fill={marker.pattern.color}
+              stroke="#0f172a"
+              strokeWidth={1}
+            >
+              <title>
+                {marker.pattern.label}: {marker.pattern.description}
+              </title>
+            </circle>
+          </g>
+        );
+      })}
     </g>
   );
 };
@@ -281,12 +295,13 @@ export default function MultiAssetChart() {
           const previousCandle = previous?.[`${asset.key}Candle`];
           const pattern = detectPattern(candle, previousCandle);
           if (!pattern) return null;
+          const range = Math.max(candle.high - candle.low, 0.01);
           return {
             time: entry.time,
             assetKey: asset.key,
-            offset: assetIndex * 10 - 10,
+            offset: getAssetOffset(assetIndex),
             pattern,
-            price: candle.high + 2,
+            price: candle.high - Math.max(range * 0.08, 1),
           };
         })
         .filter(Boolean);
