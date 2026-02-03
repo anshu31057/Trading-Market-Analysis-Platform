@@ -21,6 +21,22 @@ input {
   min-height: 40px;
 }
 
+button,
+input,
+select,
+textarea {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease,
+    background-color 0.2s ease, color 0.2s ease;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+
 .app-shell {
   min-height: 100vh;
   display: flex;
@@ -62,6 +78,11 @@ input {
   padding: 32px 48px 48px;
 }
 
+.main-content > .auth-grid {
+  max-width: 980px;
+  margin: 0 auto;
+}
+
 .footer {
   padding: 16px 48px;
   text-align: center;
@@ -84,6 +105,19 @@ input {
   width: 100%;
 }
 
+.card h1,
+.card h2,
+.card h3 {
+  color: #0f172a;
+  margin-bottom: 8px;
+  line-height: 1.25;
+}
+
+.card p {
+  line-height: 1.6;
+  color: #475569;
+}
+
 .hero {
   display: flex;
   flex-wrap: wrap;
@@ -93,6 +127,7 @@ input {
   border-radius: 20px;
   background: linear-gradient(120deg, #dbeafe, #eff6ff);
   margin-bottom: 24px;
+  box-shadow: 0 16px 30px rgba(37, 99, 235, 0.08);
 }
 
 .hero-actions {
@@ -134,12 +169,27 @@ input {
   font-weight: 600;
 }
 
+.primary:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.ghost:hover {
+  background: rgba(37, 99, 235, 0.08);
+  transform: translateY(-1px);
+}
+
 .link {
   background: none;
   border: none;
   color: #2563eb;
   cursor: pointer;
   margin-top: 16px;
+  transition: color 0.2s ease;
+}
+
+.link:hover {
+  color: #1d4ed8;
 }
 
 .user-pill {
@@ -153,6 +203,7 @@ input {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
+  align-items: start;
 }
 
 .form-stack {
@@ -236,11 +287,18 @@ input {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .asset-card.selected {
   border-color: #2563eb;
   box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+}
+
+.asset-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
 }
 
 .asset-symbol {
@@ -280,6 +338,7 @@ input {
   background: #f8fafc;
   padding: 16px;
   border-radius: 14px;
+  border: 1px solid #e2e8f0;
 }
 
 .metric-label {
@@ -302,6 +361,7 @@ input {
   background: #f8fafc;
   padding: 16px;
   border-radius: 14px;
+  border: 1px solid #e2e8f0;
 }
 
 .chart-container {
@@ -331,6 +391,11 @@ input {
   align-items: center;
   gap: 8px;
   font-size: 0.85rem;
+}
+
+.legend-item input {
+  width: 16px;
+  height: 16px;
 }
 
 .legend-swatch {
@@ -524,6 +589,7 @@ input {
   background: #eff6ff;
   padding: 16px;
   border-radius: 14px;
+  border: 1px solid rgba(37, 99, 235, 0.2);
 }
 
 .positive {
