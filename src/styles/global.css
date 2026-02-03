@@ -477,6 +477,12 @@ input {
   border-radius: 12px;
 }
 
+.indicator-panel {
+  display: grid;
+  gap: 16px;
+  margin-top: 12px;
+}
+
 .trend-footer {
   display: flex;
   justify-content: space-between;

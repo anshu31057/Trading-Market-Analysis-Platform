@@ -6,6 +6,7 @@ import TrendChart from "./TrendChart";
 import MultiAssetChart from "./MultiAssetChart";
 import PortfolioSimulator from "./PortfolioSimulator";
 import StrategyEngine from "./StrategyEngine";
+import AnalyticsDashboard from "./AnalyticsDashboard";
 import {
   generateMarketSnapshot,
   generateRiskMetrics,
@@ -166,6 +167,8 @@ export default function Dashboard() {
       <PortfolioSimulator />
 
       <StrategyEngine />
+
+      <AnalyticsDashboard />
 
       <div className="grid-two">
         <PortfolioSummary metrics={metrics} />
