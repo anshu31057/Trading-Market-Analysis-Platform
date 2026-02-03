@@ -3,6 +3,7 @@ import MarketOverview from "./MarketOverview";
 import PortfolioSummary from "./PortfolioSummary";
 import TradeIdeas from "./TradeIdeas";
 import TrendChart from "./TrendChart";
+import MultiAssetChart from "./MultiAssetChart";
 import {
   generateMarketSnapshot,
   generateRiskMetrics,
@@ -157,6 +158,8 @@ export default function Dashboard() {
         selected={selectedAsset}
         onSelect={setSelectedAsset}
       />
+
+      <MultiAssetChart />
 
       <div className="grid-two">
         <PortfolioSummary metrics={metrics} />
