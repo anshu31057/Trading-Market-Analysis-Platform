@@ -333,6 +333,14 @@ input {
   margin-top: 12px;
   font-size: 0.85rem;
   color: #64748b;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pattern-hint {
+  font-size: 0.8rem;
+  color: #475569;
 }
 
 .portfolio-grid {

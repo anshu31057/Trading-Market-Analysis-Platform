@@ -24,6 +24,33 @@ const chartTypes = [
   { value: "candlestick", label: "Candlestick" },
 ];
 
+const patternConfig = [
+  {
+    key: "doji",
+    label: "Doji",
+    color: "#6366f1",
+    description: "Open and close are nearly equal, signaling indecision.",
+  },
+  {
+    key: "hammer",
+    label: "Hammer",
+    color: "#22c55e",
+    description: "Small body with long lower wick after a decline.",
+  },
+  {
+    key: "bullishEngulfing",
+    label: "Bullish Engulfing",
+    color: "#14b8a6",
+    description: "Bullish candle fully engulfs prior bearish body.",
+  },
+  {
+    key: "bearishEngulfing",
+    label: "Bearish Engulfing",
+    color: "#ef4444",
+    description: "Bearish candle fully engulfs prior bullish body.",
+  },
+];
+
 const randomBetween = (min, max) =>
   Math.round((Math.random() * (max - min) + min) * 100) / 100;
 
@@ -33,6 +60,52 @@ const buildCandles = (price) => {
   const high = Math.max(open, close) + randomBetween(0, 6);
   const low = Math.min(open, close) - randomBetween(0, 6);
   return { open, close, high, low };
+};
+
+const calculateCandleStats = ({ open, close, high, low }) => {
+  const body = Math.abs(close - open);
+  const range = Math.max(high - low, 0.01);
+  const upperWick = high - Math.max(open, close);
+  const lowerWick = Math.min(open, close) - low;
+  return { body, range, upperWick, lowerWick };
+};
+
+const detectPattern = (current, previous) => {
+  const { body, range, upperWick, lowerWick } = calculateCandleStats(current);
+  const isBull = current.close > current.open;
+  const isBear = current.close < current.open;
+  const prevBull = previous?.close > previous?.open;
+  const prevBear = previous?.close < previous?.open;
+
+  if (body / range <= 0.1) {
+    return patternConfig[0];
+  }
+
+  if (lowerWick >= body * 2 && upperWick <= body * 0.6) {
+    return patternConfig[1];
+  }
+
+  if (
+    previous &&
+    prevBear &&
+    isBull &&
+    current.open <= previous.close &&
+    current.close >= previous.open
+  ) {
+    return patternConfig[2];
+  }
+
+  if (
+    previous &&
+    prevBull &&
+    isBear &&
+    current.open >= previous.close &&
+    current.close <= previous.open
+  ) {
+    return patternConfig[3];
+  }
+
+  return null;
 };
 
 const buildInitialSeries = () =>
@@ -114,6 +187,31 @@ const CandleLayer = ({ points, yAxisMap, visibleAssets }) => {
   );
 };
 
+const PatternLayer = ({ markers, xAxisMap, yAxisMap }) => {
+  const xScale = Object.values(xAxisMap || {})[0]?.scale;
+  const yScale = Object.values(yAxisMap || {})[0]?.scale;
+  if (!xScale || !yScale) return null;
+
+  return (
+    <g>
+      {markers.map((marker) => (
+        <g key={`${marker.time}-${marker.assetKey}-${marker.pattern.key}`}>
+          <circle
+            cx={xScale(marker.time) + marker.offset}
+            cy={yScale(marker.price)}
+            r={6}
+            fill={marker.pattern.color}
+          >
+            <title>
+              {marker.pattern.label}: {marker.pattern.description}
+            </title>
+          </circle>
+        </g>
+      ))}
+    </g>
+  );
+};
+
 const buildLegendPayload = (visibleAssets, onToggle) =>
   assetConfig.map((asset) => ({
     value: asset.label,
@@ -150,6 +248,7 @@ export default function MultiAssetChart() {
     bonds: true,
     crypto: true,
   });
+  const [showPatterns, setShowPatterns] = useState(true);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -169,6 +268,30 @@ export default function MultiAssetChart() {
   const visibleKeys = assetConfig
     .filter((asset) => visibleAssets[asset.key])
     .map((asset) => asset.key);
+
+  const patternMarkers = useMemo(() => {
+    if (!showPatterns) return [];
+
+    return series.flatMap((entry, index) => {
+      const previous = series[index - 1];
+      return assetConfig
+        .filter((asset) => visibleAssets[asset.key])
+        .map((asset, assetIndex) => {
+          const candle = entry[`${asset.key}Candle`];
+          const previousCandle = previous?.[`${asset.key}Candle`];
+          const pattern = detectPattern(candle, previousCandle);
+          if (!pattern) return null;
+          return {
+            time: entry.time,
+            assetKey: asset.key,
+            offset: assetIndex * 10 - 10,
+            pattern,
+            price: candle.high + 2,
+          };
+        })
+        .filter(Boolean);
+    });
+  }, [series, showPatterns, visibleAssets]);
 
   return (
     <section className="card">
@@ -190,6 +313,13 @@ export default function MultiAssetChart() {
               {type.label}
             </button>
           ))}
+          <button
+            type="button"
+            className={showPatterns ? "primary" : "ghost"}
+            onClick={() => setShowPatterns((prev) => !prev)}
+          >
+            {showPatterns ? "Hide patterns" : "Show patterns"}
+          </button>
         </div>
       </div>
 
@@ -243,6 +373,17 @@ export default function MultiAssetChart() {
                 }}
               />
             )}
+            {chartType === "candlestick" && showPatterns && (
+              <Customized
+                component={({ xAxisMap, yAxisMap }) => (
+                  <PatternLayer
+                    markers={patternMarkers}
+                    xAxisMap={xAxisMap}
+                    yAxisMap={yAxisMap}
+                  />
+                )}
+              />
+            )}
           </ComposedChart>
         </ResponsiveContainer>
       </div>
@@ -251,6 +392,11 @@ export default function MultiAssetChart() {
         {visibleKeys.length
           ? `Visible: ${visibleKeys.join(", ")}`
           : "Toggle an asset to display data."}
+        {showPatterns && (
+          <span className="pattern-hint">
+            Patterns: {patternConfig.map((pattern) => pattern.label).join(", ")}
+          </span>
+        )}
       </div>
     </section>
   );
