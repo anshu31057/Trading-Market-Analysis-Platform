@@ -17,6 +17,7 @@ import {
   removeWatchlistSymbol,
   addIndicator,
   updatePreferences,
+  updatePortfolio,
 } from "../utils/firestore";
 
 const AuthContext = createContext(null);
@@ -100,6 +101,11 @@ export function AuthProvider({ children }) {
     return updatePreferences(user.uid, preferences);
   };
 
+  const handleUpdatePortfolio = (portfolio) => {
+    if (!user) return Promise.resolve();
+    return updatePortfolio(user.uid, portfolio);
+  };
+
   const value = useMemo(
     () => ({
       user,
@@ -114,6 +120,7 @@ export function AuthProvider({ children }) {
       removeWatchlistSymbol: handleRemoveWatchlist,
       addIndicator: handleAddIndicator,
       updatePreferences: handleUpdatePreferences,
+      updatePortfolio: handleUpdatePortfolio,
     }),
     [user, loading, userData, dataLoading]
   );

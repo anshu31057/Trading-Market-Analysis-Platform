@@ -15,6 +15,10 @@ export const defaultUserProfile = (user, overrides = {}) => ({
   displayName: user.displayName || overrides.displayName || "",
   watchlist: [],
   portfolioHoldings: [],
+  tradeHistory: [],
+  realizedPL: 0,
+  cashBalance: 100000,
+  transactionCostPct: 0.2,
   appliedIndicators: [],
   preferences: {
     theme: "light",
@@ -66,6 +70,13 @@ export const addIndicator = async (uid, indicator) => {
 export const updatePreferences = async (uid, preferences) => {
   await updateDoc(userDocRef(uid), {
     preferences,
+    updatedAt: serverTimestamp(),
+  });
+};
+
+export const updatePortfolio = async (uid, portfolio) => {
+  await updateDoc(userDocRef(uid), {
+    ...portfolio,
     updatedAt: serverTimestamp(),
   });
 };

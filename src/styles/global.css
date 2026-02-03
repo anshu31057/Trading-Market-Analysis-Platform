@@ -335,6 +335,92 @@ input {
   color: #64748b;
 }
 
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.trade-form {
+  display: grid;
+  gap: 16px;
+}
+
+.trade-form label {
+  display: grid;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.trade-form input,
+.trade-form select {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.segmented {
+  display: flex;
+  gap: 8px;
+}
+
+.trade-price {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pl-grid {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.allocation {
+  margin-top: 12px;
+}
+
+.holdings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.table {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.table-row.header {
+  font-weight: 600;
+  color: #475569;
+}
+
+.inset {
+  background: #f8fafc;
+  box-shadow: none;
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
 .trend-footer {
   display: flex;
   justify-content: space-between;
