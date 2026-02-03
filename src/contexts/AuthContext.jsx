@@ -2,19 +2,33 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
+  browserLocalPersistence,
+  setPersistence,
   signInWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
-import { doc, serverTimestamp, setDoc } from "firebase/firestore";
-import { auth, db } from "../firebase";
+import { auth } from "../firebase";
+import {
+  createUserProfile,
+  defaultUserProfile,
+  subscribeToUserProfile,
+  updateUserProfile,
+  addWatchlistSymbol,
+  removeWatchlistSymbol,
+  addIndicator,
+  updatePreferences,
+} from "../utils/firestore";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState(null);
+  const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
+    setPersistence(auth, browserLocalPersistence);
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
@@ -23,6 +37,29 @@ export function AuthProvider({ children }) {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (!user) {
+      setUserData(null);
+      setDataLoading(false);
+      return;
+    }
+
+    setDataLoading(true);
+    const unsubscribe = subscribeToUserProfile(user.uid, async (snapshot) => {
+      if (!snapshot.exists()) {
+        const profile = defaultUserProfile(user);
+        await createUserProfile(user);
+        setUserData(profile);
+        setDataLoading(false);
+        return;
+      }
+      setUserData(snapshot.data() || null);
+      setDataLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
   const register = async ({ email, password, displayName }) => {
     const credentials = await createUserWithEmailAndPassword(
       auth,
@@ -30,12 +67,7 @@ export function AuthProvider({ children }) {
       password
     );
 
-    await setDoc(doc(db, "users", credentials.user.uid), {
-      email,
-      displayName,
-      createdAt: serverTimestamp(),
-      simulationBalance: 100000,
-    });
+    await createUserProfile(credentials.user, { displayName });
   };
 
   const login = ({ email, password }) =>
@@ -43,15 +75,47 @@ export function AuthProvider({ children }) {
 
   const logout = () => signOut(auth);
 
+  const handleUpdateProfile = (updates) => {
+    if (!user) return Promise.resolve();
+    return updateUserProfile(user.uid, updates);
+  };
+
+  const handleAddWatchlist = (symbol) => {
+    if (!user) return Promise.resolve();
+    return addWatchlistSymbol(user.uid, symbol);
+  };
+
+  const handleRemoveWatchlist = (symbol) => {
+    if (!user) return Promise.resolve();
+    return removeWatchlistSymbol(user.uid, symbol);
+  };
+
+  const handleAddIndicator = (indicator) => {
+    if (!user) return Promise.resolve();
+    return addIndicator(user.uid, indicator);
+  };
+
+  const handleUpdatePreferences = (preferences) => {
+    if (!user) return Promise.resolve();
+    return updatePreferences(user.uid, preferences);
+  };
+
   const value = useMemo(
     () => ({
       user,
       loading,
+      userData,
+      dataLoading,
       register,
       login,
       logout,
+      updateUserProfile: handleUpdateProfile,
+      addWatchlistSymbol: handleAddWatchlist,
+      removeWatchlistSymbol: handleRemoveWatchlist,
+      addIndicator: handleAddIndicator,
+      updatePreferences: handleUpdatePreferences,
     }),
-    [user, loading]
+    [user, loading, userData, dataLoading]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

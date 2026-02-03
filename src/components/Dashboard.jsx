@@ -8,12 +8,24 @@ import {
   generateRiskMetrics,
   generateTradeIdeas,
 } from "../utils/simulator";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Dashboard() {
   const snapshot = useMemo(() => generateMarketSnapshot(), []);
   const metrics = useMemo(() => generateRiskMetrics(), []);
   const ideas = useMemo(() => generateTradeIdeas(), []);
   const [selectedAsset, setSelectedAsset] = useState(snapshot[0]);
+  const {
+    userData,
+    dataLoading,
+    addWatchlistSymbol,
+    removeWatchlistSymbol,
+    addIndicator,
+    updatePreferences,
+  } = useAuth();
+
+  const watchlist = userData?.watchlist || [];
+  const hasInWatchlist = watchlist.includes(selectedAsset.symbol);
 
   return (
     <div className="dashboard">
@@ -24,6 +36,20 @@ export default function Dashboard() {
             Explore multi-asset trends, test strategies, and review portfolio
             health with mock data generated for learning.
           </p>
+          <div className="hero-stats">
+            <div>
+              <p className="muted">Watchlist assets</p>
+              <p className="stat-value">
+                {dataLoading ? "Loading..." : watchlist.length}
+              </p>
+            </div>
+            <div>
+              <p className="muted">Base currency</p>
+              <p className="stat-value">
+                {userData?.preferences?.baseCurrency || "USD"}
+              </p>
+            </div>
+          </div>
         </div>
         <div className="hero-actions">
           <button type="button" className="primary">
@@ -62,6 +88,31 @@ export default function Dashboard() {
               </p>
             </div>
           </div>
+          <div className="action-row">
+            <button
+              type="button"
+              className={hasInWatchlist ? "ghost" : "primary"}
+              onClick={() =>
+                hasInWatchlist
+                  ? removeWatchlistSymbol(selectedAsset.symbol)
+                  : addWatchlistSymbol(selectedAsset.symbol)
+              }
+            >
+              {hasInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
+            </button>
+            <button
+              type="button"
+              className="ghost"
+              onClick={() =>
+                addIndicator({
+                  name: "RSI",
+                  asset: selectedAsset.symbol,
+                })
+              }
+            >
+              Apply RSI indicator
+            </button>
+          </div>
         </div>
         <div className="card">
           <div className="section-header">
@@ -82,6 +133,21 @@ export default function Dashboard() {
               Your virtual balance starts at <strong>$100,000</strong>. Track
               your risk exposure using the analytics widgets below.
             </p>
+            <button
+              type="button"
+              className="link"
+              onClick={() =>
+                updatePreferences({
+                  ...(userData?.preferences || {}),
+                  baseCurrency:
+                    userData?.preferences?.baseCurrency === "USD"
+                      ? "EUR"
+                      : "USD",
+                })
+              }
+            >
+              Toggle base currency
+            </button>
           </div>
         </div>
       </div>
